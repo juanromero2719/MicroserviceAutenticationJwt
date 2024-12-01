@@ -18,18 +18,18 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AutenticacionServicio {
 
-    private final JwtServicio Jwt_service;
-    private final UsuarioRepositorio UsuarioRepositorio;
+    private final JwtServicio jwtServicio;
+    private final UsuarioRepositorio usuarioRepositorio;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager autenticacion_manager;
+    private final AuthenticationManager autenticacionManejador;
 
     public RespuestaAutenticacion ingreso(IngresoSolicitud solicitud){
 
-        autenticacion_manager.authenticate(new UsernamePasswordAuthenticationToken(solicitud.getUsuario(),solicitud.getContrasena()));
-        UserDetails usuario = UsuarioRepositorio.findByUsuario(solicitud.getUsuario())
+        autenticacionManejador.authenticate(new UsernamePasswordAuthenticationToken(solicitud.getUsuario(),solicitud.getContrasena()));
+        UserDetails usuario = usuarioRepositorio.findByUsuario(solicitud.getUsuario())
                 .orElseThrow();
 
-        String token = Jwt_service.getToken(usuario);
+        String token = jwtServicio.getToken(usuario);
 
         return RespuestaAutenticacion.builder()
                 .token(token)
@@ -47,10 +47,10 @@ public class AutenticacionServicio {
                 .role(Rol.USER)
                 .build();
 
-        UsuarioRepositorio.save(Usuario);
+        usuarioRepositorio.save(Usuario);
 
         return RespuestaAutenticacion.builder()
-                .token(Jwt_service.getToken(Usuario))
+                .token(jwtServicio.getToken(Usuario))
                 .build();
 
     }

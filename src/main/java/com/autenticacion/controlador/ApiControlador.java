@@ -13,7 +13,6 @@ public class ApiControlador {
 
     @PostMapping(value = "bienvenido")
     public String bienvenido(){
-
         return "bienvenido a la api";
     }
 }

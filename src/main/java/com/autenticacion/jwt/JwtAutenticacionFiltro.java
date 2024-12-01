@@ -23,50 +23,50 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAutenticacionFiltro extends OncePerRequestFilter {
 
-    private final JwtServicio JwtServicio;
-    private final UserDetailsService userDetailsService;
+    private final JwtServicio jwtServicio;
+    private final UserDetailsService usuarioDetallesServicio;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest solicitud, HttpServletResponse respuesta, FilterChain filterChain) throws ServletException, IOException {
 
-        final String token = obtener_token_solicitud(request);
+        final String token = obtenerTokenSolicitud(solicitud);
         final String usuario;
 
         if(token == null){
 
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(solicitud, respuesta);
             return;
         }
 
-        usuario = JwtServicio.getUsernameFromToken(token);
+        usuario = jwtServicio.obtenerUsuarioDelToken(token);
 
         if(usuario != null && SecurityContextHolder.getContext().getAuthentication() == null){
 
-            UserDetails usuario_detalles = userDetailsService.loadUserByUsername(usuario);
+            UserDetails usuarioDetalles = usuarioDetallesServicio.loadUserByUsername(usuario);
 
-            if(JwtServicio.isTokenValid(token, usuario_detalles)){
+            if(jwtServicio.esTokenValido(token, usuarioDetalles)){
 
-                UsernamePasswordAuthenticationToken autenticacion_token = new UsernamePasswordAuthenticationToken(
-                        usuario_detalles,
+                UsernamePasswordAuthenticationToken autenticacionToken = new UsernamePasswordAuthenticationToken(
+                        usuarioDetalles,
                         null,
-                        usuario_detalles.getAuthorities());
+                        usuarioDetalles.getAuthorities());
 
-                autenticacion_token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                autenticacionToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(solicitud));
 
-                SecurityContextHolder.getContext().setAuthentication(autenticacion_token);
+                SecurityContextHolder.getContext().setAuthentication(autenticacionToken);
             }
         }
 
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(solicitud, respuesta);
     }
 
-    private String obtener_token_solicitud(HttpServletRequest request){
+    private String obtenerTokenSolicitud(HttpServletRequest request){
 
-        final String encabezado_autenticacion = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String encabezadoAutenticacion = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if(StringUtils.hasText(encabezado_autenticacion) && encabezado_autenticacion.startsWith("Bearer ")){
+        if(StringUtils.hasText(encabezadoAutenticacion) && encabezadoAutenticacion.startsWith("Bearer ")){
 
-            return encabezado_autenticacion.substring(7);
+            return encabezadoAutenticacion.substring(7);
         }
         return null;
     }
